@@ -1,0 +1,13 @@
+# dependencies (run `npm install` in scripts/ to restore)
+node_modules/
+
+# macOS
+.DS_Store
+
+# logs
+*.log
+
+# generated cards (HTML is an intermediate artifact, PNG is output)
+xhs_card_*.html
+xhs_card_*.png
+小红书文案.md
