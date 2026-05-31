@@ -56,12 +56,15 @@ Anthropic 官网采用温暖的 editorial（编辑/杂志）风格：大量留�
 
 ### 中英文混排优化字体栈
 
-```css
-/* 标题 — Editorial 衬线，英文 Georgia + 中文系统字体 */
-font-family: Georgia, "Times New Roman", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", serif;
+> ⚠️ 渲染机无 PingFang/衬线中文字体，必须在 `<head>` 引入 web 字体（见 `references/fonts.md`），
+> 且 web 字体放在栈最前，否则中文衬线标题会回落成黑体、设计失效。
 
-/* 正文 — 系统无衬线，中英文统一 */
-font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+```css
+/* 标题 — Editorial 衬线，中文衬线靠 Noto Serif SC 真正生效 */
+font-family: "Noto Serif SC", Georgia, "Times New Roman", "Songti SC", "PingFang SC", serif;
+
+/* 正文 — 无衬线，中英文统一 */
+font-family: "Noto Sans SC", -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
 
 /* 代码 — 等宽字体，中文回落到 PingFang */
 font-family: "SF Mono", "Fira Code", Consolas, "PingFang SC", monospace;

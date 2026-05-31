@@ -46,9 +46,12 @@
 
 ## 字体系统
 
+> ⚠️ 渲染机无 PingFang，且文泉驿黑体只有 Regular（无 300 light）。极简风的 light 细字重
+> 依赖 Noto Sans SC 300——必须在 `<head>` 引入（见 `references/fonts.md`），放在栈最前。
+
 ```css
-/* 全局 — Helvetica Neue 系统字体栈 */
-font-family: "Helvetica Neue", -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+/* 全局 — Noto Sans SC 在前，保证中文 300/700 字重对比可用 */
+font-family: "Noto Sans SC", "Helvetica Neue", -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
 
 /* 标题和正文使用同一字体栈，靠字重区分 */
 

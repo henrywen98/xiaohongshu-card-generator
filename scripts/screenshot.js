@@ -55,6 +55,12 @@ async function screenshotFile(browser, htmlPath, outputDir) {
   const page = await browser.newPage();
   await page.setViewportSize({ width, height });
   await page.goto(`file://${absolutePath}`, { waitUntil: "networkidle" });
+  // 等待 web 字体（如 Noto Sans/Serif SC）真正加载并应用，否则会拍到回退字体
+  // （文泉驿黑体 / 豆腐块）。加超时保护，离线时不至于卡死。
+  await Promise.race([
+    page.evaluate(() => document.fonts.ready),
+    page.waitForTimeout(3000),
+  ]);
   await page.screenshot({ path: pngPath, fullPage: true });
   await page.close();
 

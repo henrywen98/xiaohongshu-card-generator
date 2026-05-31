@@ -8,14 +8,18 @@ HTML is the intermediate format; the final deliverable is **PNG images** (render
 
 ## Features
 
-- **3 visual styles** (see `references/style-*.md` for full design tokens)
+- **5 visual styles** (see `references/style-*.md` for full design tokens)
   | style | 中文 | best for |
   |-------|------|----------|
   | `anthropic` | Anthropic 官网风 | tech / AI / product / tutorials |
   | `notion` | Notion 风 | notes / learning / productivity |
   | `minimal` | 极简黑白 | business / design / tech |
+  | `warm` | 暖色生活方式 | life / food / goods / mood（most "native" RedNote feel） |
+  | `morandi` | 莫兰迪低饱和 | outfits / home / art / reading |
 - **4 layouts**: `sparse` / `balanced` / `list` / `flow`
 - **3 aspect ratios**: `3:4` (1080×1440, default) / `1:1` (1080×1080) / `4:3` (1200×900)
+- **Embedded Chinese fonts** — Noto Sans/Serif SC + ZCOOL fonts bundled as local `woff2` and loaded via `@font-face`, so headless Chromium renders crisp Chinese typography (serif titles, light weights) instead of falling back to a default font — no network needed at render time
+- **Banned-word compliance check** — scans card text & caption against a categorized 小红书 sensitive-word dictionary (ad-law absolutes, medical claims, off-platform diversion, etc.) and suggests replacements, so posts are less likely to get throttled
 - Auto-splits content into cover / content / summary cards
 - Generates a ready-to-post `小红书文案.md` (title + body + hashtags)
 
@@ -57,12 +61,23 @@ Auto-detects each HTML's canvas size from the `body` width/height, renders in pa
 
 ```
 SKILL.md                 # skill entrypoint / workflow
-references/               # full design tokens per style
+references/               # full design tokens per style + guides
   style-anthropic.md
   style-notion.md
   style-minimal.md
+  style-warm.md
+  style-morandi.md
+  fonts.md               # font-embedding spec (read before generating)
+  banned-words.md        # compliance check rationale & replacement rules
+assets/
+  fonts.css              # @font-face block (copy into HTML, replace {SKILL_ROOT})
+  fonts/*.woff2          # bundled Chinese fonts (Noto Sans/Serif SC, ZCOOL)
+data/
+  banned-words.json      # categorized sensitive-word dictionary
 scripts/
-  screenshot.js          # Playwright HTML → PNG batch renderer
+  screenshot.js          # Playwright HTML → PNG batch renderer (waits for fonts)
+  check_banned_words.js  # banned-word scanner (recall) → report + suggestions
+  setup_fonts.sh         # (re)download bundled fonts
   package.json
 examples/
   sample_cover_anthropic.html
