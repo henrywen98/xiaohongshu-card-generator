@@ -5,24 +5,28 @@
 const { chromium } = require("playwright");
 const fs = require("fs");
 const path = require("path");
+const { auditMissingGlyphsInPage } = require("./lib/glyph_audit");
 
 function parseArgs(argv) {
   const args = argv.slice(2);
   const files = [];
   let outputDir = null;
   let clean = false;
+  let audit = true;
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--output-dir" && args[i + 1]) {
       outputDir = args[++i];
     } else if (args[i] === "--clean") {
       clean = true;
+    } else if (args[i] === "--no-audit") {
+      audit = false;
     } else if (!args[i].startsWith("--")) {
       files.push(args[i]);
     }
   }
 
-  return { files, outputDir, clean };
+  return { files, outputDir, clean, audit };
 }
 
 // 从 HTML 中解析 body 的 width/height（默认 1080x1440）
@@ -43,7 +47,7 @@ function parseViewportSize(html) {
   return { width, height };
 }
 
-async function screenshotFile(browser, htmlPath, outputDir) {
+async function screenshotFile(browser, htmlPath, outputDir, audit) {
   const absolutePath = path.resolve(htmlPath);
   const html = fs.readFileSync(absolutePath, "utf-8");
   const { width, height } = parseViewportSize(html);
@@ -62,13 +66,25 @@ async function screenshotFile(browser, htmlPath, outputDir) {
     page.waitForTimeout(3000),
   ]);
   await page.screenshot({ path: pngPath, fullPage: true });
+
+  // 截图后自检：扫一遍页面，看有没有 emoji/符号渲染成豆腐块 □（即"方括号"）。
+  // 缺字形会被烧进 PNG，必须在交付前发现并修。
+  let missingGlyphs = [];
+  if (audit) {
+    try {
+      missingGlyphs = await page.evaluate(auditMissingGlyphsInPage);
+    } catch {
+      // 自检失败不阻断出图
+    }
+  }
+
   await page.close();
 
-  return { htmlPath, pngPath, width, height };
+  return { htmlPath, pngPath, width, height, missingGlyphs };
 }
 
 async function main() {
-  const { files, outputDir, clean } = parseArgs(process.argv);
+  const { files, outputDir, clean, audit } = parseArgs(process.argv);
 
   if (files.length === 0) {
     console.error("用法: node screenshot.js <html-files...> [--clean] [--output-dir <dir>]");
@@ -93,7 +109,7 @@ async function main() {
 
   console.log(`正在处理 ${files.length} 个文件...\n`);
   const results = await Promise.all(
-    files.map((f) => screenshotFile(browser, f, outputDir))
+    files.map((f) => screenshotFile(browser, f, outputDir, audit))
   );
 
   await browser.close();
@@ -102,6 +118,23 @@ async function main() {
   console.log("截图完成:\n");
   for (const r of results) {
     console.log(`  ${r.pngPath}  (${r.width}x${r.height})`);
+  }
+
+  // 截图后自检摘要：列出哪些卡片有缺字形（豆腐块 □ / 方括号）
+  if (audit) {
+    const flagged = results.filter((r) => r.missingGlyphs && r.missingGlyphs.length > 0);
+    console.log("\n视觉自检（缺字形检测）:");
+    if (flagged.length === 0) {
+      console.log("  ✓ 未发现豆腐块 / 缺字形，emoji 与符号渲染正常。");
+    } else {
+      console.log(`  ✗ ${flagged.length} 张卡片有字符渲染成方块 □（会被烧进 PNG，请修复后重拍）:`);
+      for (const r of flagged) {
+        const list = r.missingGlyphs.map((g) => `${g.codepoint}(${g.char})`).join(" ");
+        console.log(`     ${path.basename(r.pngPath)}: ${list}`);
+      }
+      console.log("  修复: 在该 HTML 嵌入 Noto Color Emoji @font-face 并把 \"Noto Color Emoji\"");
+      console.log("        加到文字 font-family 栈末尾；或换掉该字符。改完重跑本脚本。");
+    }
   }
 
   // 清理 HTML 文件

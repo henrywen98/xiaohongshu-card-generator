@@ -14,9 +14,9 @@
 
 ```css
 /* 标题 — 圆润手写感 */
-font-family: "ZCOOL KuaiLe", "Noto Sans SC", "PingFang SC", sans-serif;
+font-family: "ZCOOL KuaiLe", "Noto Sans SC", "PingFang SC", "Noto Color Emoji", sans-serif;
 /* 正文 */
-font-family: "Noto Sans SC", -apple-system, "PingFang SC", sans-serif;
+font-family: "Noto Sans SC", -apple-system, "PingFang SC", "Noto Color Emoji", sans-serif;
 ```
 
 | 元素 | 字号 | 字重 | 行高 |

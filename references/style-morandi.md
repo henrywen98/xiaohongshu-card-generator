@@ -14,9 +14,9 @@
 
 ```css
 /* 标题 — 文艺细衬线 */
-font-family: "Noto Serif SC", "ZCOOL XiaoWei", Georgia, "Songti SC", serif;
+font-family: "Noto Serif SC", "ZCOOL XiaoWei", Georgia, "Songti SC", "Noto Color Emoji", serif;
 /* 正文 */
-font-family: "Noto Sans SC", -apple-system, "PingFang SC", sans-serif;
+font-family: "Noto Sans SC", -apple-system, "PingFang SC", "Noto Color Emoji", sans-serif;
 ```
 
 | 元素 | 字号 | 字重 | 行高 | 特殊 |

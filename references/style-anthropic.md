@@ -61,10 +61,10 @@ Anthropic 官网采用温暖的 editorial（编辑/杂志）风格：大量留�
 
 ```css
 /* 标题 — Editorial 衬线，中文衬线靠 Noto Serif SC 真正生效 */
-font-family: "Noto Serif SC", Georgia, "Times New Roman", "Songti SC", "PingFang SC", serif;
+font-family: "Noto Serif SC", Georgia, "Times New Roman", "Songti SC", "PingFang SC", "Noto Color Emoji", serif;
 
 /* 正文 — 无衬线，中英文统一 */
-font-family: "Noto Sans SC", -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+font-family: "Noto Sans SC", -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Color Emoji", sans-serif;
 
 /* 代码 — 等宽字体，中文回落到 PingFang */
 font-family: "SF Mono", "Fira Code", Consolas, "PingFang SC", monospace;

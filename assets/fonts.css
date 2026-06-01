@@ -45,3 +45,12 @@
   font-family: "ZCOOL XiaoWei"; font-style: normal; font-weight: 400; font-display: swap;
   src: url("file://{SKILL_ROOT}/assets/fonts/ZCOOLXiaoWei-400.woff2") format("woff2");
 }
+/* 彩色 emoji —— 必须本地嵌入。渲染机（CI / 沙箱 / 某些云环境如 openclaw）
+ * 不一定装了 Noto Color Emoji，缺了 emoji 会渲染成空心方块 □（俗称豆腐块/方括号）。
+ * 这是一个 COLRv1 矢量彩色字体，Chromium 原生支持，只含 emoji 字形，
+ * 放进任意 font-family 栈都只会用于 emoji，不影响中英文。
+ * 用法：在每个文字 font-family 栈末尾追加 "Noto Color Emoji"。 */
+@font-face {
+  font-family: "Noto Color Emoji"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("file://{SKILL_ROOT}/assets/fonts/NotoColorEmoji.woff2") format("woff2");
+}
