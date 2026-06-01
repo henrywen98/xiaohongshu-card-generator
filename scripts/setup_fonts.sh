@@ -8,27 +8,29 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 FONT_DIR="$SCRIPT_DIR/../assets/fonts"
 BASE="https://cdn.jsdelivr.net/fontsource/fonts"
-SUB="chinese-simplified"
 
 mkdir -p "$FONT_DIR"
 
-# 格式: <family-id> <weight> <输出文件名>
+# 格式: <family-id> <subset> <weight> <输出文件名>
+# emoji 用 noto-color-emoji 的 emoji 子集（COLRv1 矢量彩色，Chromium 原生支持），
+# 嵌入后 emoji 不再依赖系统字体，避免在缺 Noto Color Emoji 的环境渲染成方块 □。
 FONTS=(
-  "noto-sans-sc 300 NotoSansSC-300.woff2"
-  "noto-sans-sc 400 NotoSansSC-400.woff2"
-  "noto-sans-sc 500 NotoSansSC-500.woff2"
-  "noto-sans-sc 700 NotoSansSC-700.woff2"
-  "noto-serif-sc 500 NotoSerifSC-500.woff2"
-  "noto-serif-sc 700 NotoSerifSC-700.woff2"
-  "noto-serif-sc 900 NotoSerifSC-900.woff2"
-  "zcool-kuaile 400 ZCOOLKuaiLe-400.woff2"
-  "zcool-xiaowei 400 ZCOOLXiaoWei-400.woff2"
+  "noto-sans-sc chinese-simplified 300 NotoSansSC-300.woff2"
+  "noto-sans-sc chinese-simplified 400 NotoSansSC-400.woff2"
+  "noto-sans-sc chinese-simplified 500 NotoSansSC-500.woff2"
+  "noto-sans-sc chinese-simplified 700 NotoSansSC-700.woff2"
+  "noto-serif-sc chinese-simplified 500 NotoSerifSC-500.woff2"
+  "noto-serif-sc chinese-simplified 700 NotoSerifSC-700.woff2"
+  "noto-serif-sc chinese-simplified 900 NotoSerifSC-900.woff2"
+  "zcool-kuaile chinese-simplified 400 ZCOOLKuaiLe-400.woff2"
+  "zcool-xiaowei chinese-simplified 400 ZCOOLXiaoWei-400.woff2"
+  "noto-color-emoji emoji 400 NotoColorEmoji.woff2"
 )
 
 echo "下载字体到 $FONT_DIR ..."
 for entry in "${FONTS[@]}"; do
-  read -r family weight out <<< "$entry"
-  url="$BASE/$family@latest/$SUB-$weight-normal.woff2"
+  read -r family subset weight out <<< "$entry"
+  url="$BASE/$family@latest/$subset-$weight-normal.woff2"
   code=$(curl -sS -m 60 -L -o "$FONT_DIR/$out" -w "%{http_code}" "$url")
   if [ "$code" = "200" ]; then
     echo "  ✓ $out"

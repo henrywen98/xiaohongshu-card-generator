@@ -11,12 +11,15 @@
     src:url("../assets/fonts/NotoSansSC-500.woff2") format("woff2"); }
   @font-face { font-family:"Noto Serif SC"; font-weight:700; font-display:swap;
     src:url("../assets/fonts/NotoSerifSC-700.woff2") format("woff2"); }
+  /* 彩色 emoji —— 同样本地嵌入，避免在缺 emoji 字体的环境渲染成方块 □ */
+  @font-face { font-family:"Noto Color Emoji"; font-weight:400; font-display:swap;
+    src:url("../assets/fonts/NotoColorEmoji.woff2") format("woff2"); }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
     width: 1080px;
     height: 1440px;
     overflow: hidden;
-    font-family: "Noto Sans SC", -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    font-family: "Noto Sans SC", -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Color Emoji", sans-serif;
     background: #FAF7F2;
     color: #1C1917;
   }
@@ -52,7 +55,7 @@
     gap: 56px;
   }
   .title {
-    font-family: "Noto Serif SC", Georgia, "Times New Roman", "Songti SC", "PingFang SC", serif;
+    font-family: "Noto Serif SC", Georgia, "Times New Roman", "Songti SC", "PingFang SC", "Noto Color Emoji", serif;
     font-size: 90px;
     font-weight: 700;
     line-height: 1.15;

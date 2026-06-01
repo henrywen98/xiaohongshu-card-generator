@@ -15,6 +15,26 @@ HTML 是中间产物，最终交付物是 PNG 图片。
 
 ## 工作流
 
+### Step 0：环境与字体预检（首次使用 / 换渲染环境时必做）
+
+截图跑在无头 Chromium 里，**不同环境装的字体不一样**。中文和 emoji 都不能依赖系统
+字体——本 skill 已把它们做成本地 woff2 用 `@font-face` 嵌入。生成前先确认这套字体在
+当前环境真的能加载、emoji 真的能渲染（否则会出现中文回落黑体、emoji 变方块 □ 等问题）：
+
+```bash
+# 首次使用先装依赖（字体已随仓库自带，无需额外下载）
+cd {skill-root}/scripts && npm install && npx playwright install chromium
+
+# 字体预检：检查字体文件齐全 + @font-face 能加载 + emoji 能彩色渲染
+node {skill-root}/scripts/check_fonts.js
+```
+
+- 全部 ✓ → 继续生成。
+- emoji 那项 ✗（豆腐块/方块 □）→ 说明 emoji 字体没生效，**别急着出图**：确认每个 HTML
+  会嵌入 `assets/fonts.css` 的 `Noto Color Emoji` `@font-face`，并在字体栈末尾加
+  `"Noto Color Emoji"`（见 `references/fonts.md`）。
+- 字体文件 ✗ → 运行 `bash {skill-root}/scripts/setup_fonts.sh` 重新下载。
+
 ### Step 1：解析输入
 
 **支持以下输入形式：**
@@ -61,10 +81,10 @@ HTML 是中间产物，最终交付物是 PNG 图片。
 **排版注意：**
 - 所有字号、间距参数按 1080px 宽度画布设计
 - 具体数值因风格而异，生成前务必读取对应的 `references/style-*.md`
-- **字体必读 `references/fonts.md`**：渲染机无 PingFang/衬线中文字体，不嵌入字体则中文全部回落成文泉驿黑体、设计失效
+- **字体必读 `references/fonts.md`**：渲染机无 PingFang/衬线中文字体、**也不一定有 emoji 字体**；不嵌入字体则中文回落成文泉驿黑体、emoji 变方块 □（设计失效）
 
 **生成要求：**
-1. **嵌入字体（最重要）**：把 `assets/fonts.css` 的 `@font-face` 声明整段拷进 `<style>` 顶部，并把 `{SKILL_ROOT}` 替换为本 skill 根目录绝对路径；`font-family` 栈里 web 字体放最前（各风格字体栈见 `references/fonts.md`）
+1. **嵌入字体（最重要，含 emoji）**：把 `assets/fonts.css` 的 `@font-face` 声明（含 `Noto Color Emoji`）整段拷进 `<style>` 顶部，并把 `{SKILL_ROOT}` 替换为本 skill 根目录绝对路径；`font-family` 栈里 web 字体放最前、**`"Noto Color Emoji"` 放最末**（各风格字体栈见 `references/fonts.md`）。emoji 也必须本地嵌入，否则在缺 emoji 字体的环境（如 openclaw）会全部渲染成方块 □
 2. 使用选定的风格和布局（读取对应的 `references/style-*.md` 获取完整设计令牌）
 3. 所有样式内联（`<style>` 标签内）
 4. 使用 emoji 增加活泼感
@@ -112,14 +132,26 @@ node {skill-root}/scripts/screenshot.js <output-dir>/xhs_card_*.html --clean
 - 截图前等待 `document.fonts.ready`，确保嵌入字体加载完成再拍（否则会拍到回落黑体）
 - 并行处理所有文件
 - 输出同名 .png 到同目录
+- **出图后自动做缺字形检测**（emoji/符号有没有变方块 □），在末尾打印《视觉自检》报告（见 Step 6）
 - 加 `--clean` 自动删除中间 HTML
 - 加 `--output-dir <dir>` 可指定 PNG 输出目录
+- 加 `--no-audit` 关闭自动缺字形检测（一般不需要）
 
 ### Step 6：截图后视觉自检（必做）
 
-读取生成的每张 PNG，像设计师一样自评一遍：
+**两道关，缺一不可：**
 
-- **字体是否正常**：中文有没有变成豆腐块（□）或回落成难看的黑体（说明字体没嵌入/路径错）
+**(a) 看脚本自检报告。** `screenshot.js` 出图后会自动跑一遍"缺字形检测"，在末尾打印
+《视觉自检》：
+
+- 显示 `✓ 未发现豆腐块` → 字体/emoji 都正常。
+- 显示 `✗ N 张卡片有字符渲染成方块 □` 并列出具体文件和码点（如 `U+1F389(🎉)`）→
+  说明这些字符变成了"方块/方括号"，**必须修**：给该 HTML 嵌入 `Noto Color Emoji`
+  `@font-face` 并把 `"Noto Color Emoji"` 加到字体栈末尾，或换掉该字符，然后**重跑截图**。
+
+**(b) 亲自读每张 PNG，像设计师一样自评一遍**（自动检测只覆盖缺字形，其余靠你的眼睛）：
+
+- **字体是否正常**：中文有没有变成豆腐块（□）或回落成难看的黑体；emoji 是否彩色显示而非方块（说明字体没嵌入/路径错）
 - **内容是否被裁切**：固定画布高 + `overflow:hidden`，文字过多会被裁掉——若有，缩字号 / 减内容 / 拆成更多张
 - **对齐与留白**：元素是否对齐、留白是否均衡、有没有溢出或挤压
 - **层次与可读性**：标题/正文对比是否清晰，配色对比度是否够
@@ -231,9 +263,10 @@ node {skill-root}/scripts/check_banned_words.js <output-dir>/小红书文案.md
 
 ### 字体规范（必读）
 
-- **`references/fonts.md`** — 字体嵌入规范：为什么必须本地 `@font-face`、各风格字体栈、`{SKILL_ROOT}` 替换
-- **`assets/fonts.css`** — 现成的 `@font-face` 声明，整段拷进 HTML 并替换 `{SKILL_ROOT}`
-- **`assets/fonts/*.woff2`** — 随仓库自带的中文字体（Noto Sans/Serif SC、ZCOOL KuaiLe/XiaoWei）
+- **`references/fonts.md`** — 字体嵌入规范：为什么中文和 emoji 都必须本地 `@font-face`、各风格字体栈、`{SKILL_ROOT}` 替换
+- **`assets/fonts.css`** — 现成的 `@font-face` 声明（含 `Noto Color Emoji`），整段拷进 HTML 并替换 `{SKILL_ROOT}`
+- **`assets/fonts/*.woff2`** — 随仓库自带的中文字体（Noto Sans/Serif SC、ZCOOL KuaiLe/XiaoWei）+ 彩色 emoji（Noto Color Emoji）
+- **`scripts/check_fonts.js`** — 字体预检（生成前跑）：检查字体文件齐全、`@font-face` 能加载、emoji 能彩色渲染；用法 `node {skill-root}/scripts/check_fonts.js [--strict] [--json]`
 
 ### 风格设计令牌
 
@@ -254,10 +287,10 @@ node {skill-root}/scripts/check_banned_words.js <output-dir>/小红书文案.md
 
 ### 截图脚本
 
-- **`scripts/screenshot.js`** — Playwright 批量截图脚本，将 HTML 转为 PNG（截图前等 `document.fonts.ready`）
+- **`scripts/screenshot.js`** — Playwright 批量截图脚本，将 HTML 转为 PNG（截图前等 `document.fonts.ready`，出图后自动做缺字形/豆腐块检测）
 - 首次使用：`cd {skill-root}/scripts && npm install && npx playwright install chromium`
-- 用法：`node {skill-root}/scripts/screenshot.js xhs_card_*.html [--clean] [--output-dir <dir>]`
-- **`scripts/setup_fonts.sh`** — 重新下载 / 更新 `assets/fonts/` 字体（仓库已自带，一般无需运行）
+- 用法：`node {skill-root}/scripts/screenshot.js xhs_card_*.html [--clean] [--output-dir <dir>] [--no-audit]`
+- **`scripts/setup_fonts.sh`** — 重新下载 / 更新 `assets/fonts/` 字体（含 emoji，仓库已自带，一般无需运行）
 
 ### 示例输出
 

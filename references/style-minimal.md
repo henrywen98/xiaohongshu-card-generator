@@ -51,7 +51,7 @@
 
 ```css
 /* 全局 — Noto Sans SC 在前，保证中文 300/700 字重对比可用 */
-font-family: "Noto Sans SC", "Helvetica Neue", -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+font-family: "Noto Sans SC", "Helvetica Neue", -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Color Emoji", sans-serif;
 
 /* 标题和正文使用同一字体栈，靠字重区分 */
 

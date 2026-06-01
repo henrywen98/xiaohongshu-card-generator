@@ -60,10 +60,10 @@ Notion 风格强调「结构化」和「可读性」：白色干净背景、无�
 
 ```css
 /* 正文 — Notion 使用无衬线字体 */
-font-family: "Noto Sans SC", -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+font-family: "Noto Sans SC", -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Color Emoji", sans-serif;
 
 /* 标题 — 同正文，靠字号和字重区分层级 */
-font-family: "Noto Sans SC", -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+font-family: "Noto Sans SC", -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Color Emoji", sans-serif;
 
 /* 代码 — 等宽字体 */
 font-family: "SFMono-Regular", "SF Mono", Menlo, Consolas, "PingFang SC", monospace;
