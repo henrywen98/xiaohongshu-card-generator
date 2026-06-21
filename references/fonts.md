@@ -27,8 +27,8 @@ TLS 拦截环境下取 `fonts.googleapis.com` 会失败（如 `ERR_CERT_AUTHORIT
 4. `scripts/screenshot.js` 会在截图前等待 `document.fonts.ready`，确保字体加载完再拍。
 
 > Latin（英文/数字）字形：本地 woff2 是中文子集，不含 Latin —— 这是**有意为之**，
-> Latin 会自动回落到字体栈里的 Georgia / Helvetica / 系统字体，正好符合各风格的设计
-> （如 anthropic 标题英文用 Georgia 衬线）。
+> Latin 会自动回落到字体栈里的 Helvetica / 系统字体，正好符合各风格的设计
+> （如 dazibao 标题里的英文用粗黑系统字体、minimal 用 Helvetica Neue）。
 
 ## 各风格推荐字体栈
 
@@ -36,52 +36,32 @@ TLS 拦截环境下取 `fonts.googleapis.com` 会失败（如 `ERR_CERT_AUTHORIT
 **emoji 字体 `"Noto Color Emoji"` 放在最末**——它只含 emoji 字形，挂在栈尾只会
 被 emoji 命中，不影响中英文，但能保证 emoji 在任何环境都彩色显示、不变方块）：
 
-### anthropic（暖米色 editorial）
+### dazibao（默认 / 大字报情绪爆款）
 ```css
-/* 标题 — 衬线（中文衬线靠 Noto Serif SC 真正生效，英文落 Georgia） */
-font-family: "Noto Serif SC", Georgia, "Times New Roman", "Songti SC", "Noto Color Emoji", serif;  /* 标题用 700/900 */
-/* 正文 */
-font-family: "Noto Sans SC", -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Color Emoji", sans-serif;
+/* 标题 — 超粗黑体；Noto Sans SC 最重到 700，再用 -webkit-text-stroke 增重到接近 Heavy */
+font-family: "Noto Sans SC", -apple-system, "PingFang SC", "Microsoft YaHei", "Noto Color Emoji", sans-serif;  /* 标题 700 + -webkit-text-stroke:1.2px currentColor */
+/* 正文 / 清单 */
+font-family: "Noto Sans SC", -apple-system, "PingFang SC", "Noto Color Emoji", sans-serif;  /* 500 */
+/* 可选俏皮变体（生活/治愈类）— 圆体 */
+font-family: "ZCOOL KuaiLe", "Noto Sans SC", "PingFang SC", "Noto Color Emoji", sans-serif;
 ```
 
-### notion（结构化白底）
-```css
-font-family: "Noto Sans SC", -apple-system, BlinkMacSystemFont, "PingFang SC", "Segoe UI", "Noto Color Emoji", sans-serif;
-```
-
-### minimal（极简黑白）
+### minimal（极简黑白 / 专业兜底）
 ```css
 /* 正文 light 用 font-weight:300（Noto Sans SC 300 已嵌入），标题 700 */
 font-family: "Noto Sans SC", "Helvetica Neue", -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Color Emoji", sans-serif;
 ```
 
-### warm（暖色生活方式 / 小红书原生）
-```css
-/* 标题 — 圆润手写感 */
-font-family: "ZCOOL KuaiLe", "Noto Sans SC", "PingFang SC", "Noto Color Emoji", sans-serif;
-/* 正文 */
-font-family: "Noto Sans SC", -apple-system, "PingFang SC", "Noto Color Emoji", sans-serif;
-```
-
-### morandi（莫兰迪低饱和）
-```css
-/* 标题 — 文艺细衬 */
-font-family: "Noto Serif SC", "ZCOOL XiaoWei", Georgia, "Songti SC", "Noto Color Emoji", serif;
-/* 正文 */
-font-family: "Noto Sans SC", -apple-system, "PingFang SC", "Noto Color Emoji", sans-serif;
-```
-
 ## 已嵌入的字体与字重
 
-| 字体 | 字重 | 文件 |
-|------|------|------|
-| Noto Sans SC | 300 / 400 / 500 / 700 | `assets/fonts/NotoSansSC-{300,400,500,700}.woff2` |
-| Noto Serif SC | 500 / 700 / 900 | `assets/fonts/NotoSerifSC-{500,700,900}.woff2` |
-| ZCOOL KuaiLe（圆体） | 400 | `assets/fonts/ZCOOLKuaiLe-400.woff2` |
-| ZCOOL XiaoWei（细衬） | 400 | `assets/fonts/ZCOOLXiaoWei-400.woff2` |
-| Noto Color Emoji（彩色 emoji） | 400 | `assets/fonts/NotoColorEmoji.woff2` |
+| 字体 | 字重 | 文件 | 用于 |
+|------|------|------|------|
+| Noto Sans SC | 300 / 400 / 500 / 700 | `assets/fonts/NotoSansSC-{300,400,500,700}.woff2` | dazibao + minimal（主力） |
+| ZCOOL KuaiLe（圆体） | 400 | `assets/fonts/ZCOOLKuaiLe-400.woff2` | dazibao 可选俏皮变体 |
+| Noto Color Emoji（彩色 emoji） | 400 | `assets/fonts/NotoColorEmoji.woff2` | 所有风格（emoji） |
 
-更新 / 重新下载字体：运行 `bash scripts/setup_fonts.sh`。
+> 只保留两种风格实际用到的字体，已移除原 anthropic/morandi 用的 Noto Serif SC 和 ZCOOL XiaoWei。
+> 更新 / 重新下载字体：运行 `bash scripts/setup_fonts.sh`。
 
 ## emoji（同样必须嵌入，否则会变方块）
 

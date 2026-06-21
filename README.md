@@ -8,15 +8,12 @@ HTML is the intermediate format; the final deliverable is **PNG images** (render
 
 ## Features
 
-- **5 visual styles** (see `references/style-*.md` for full design tokens)
+- **2 focused visual styles** (see `references/style-*.md` for full design tokens)
   | style | 中文 | best for |
   |-------|------|----------|
-  | `anthropic` | Anthropic 官网风 | tech / AI / product / tutorials |
-  | `notion` | Notion 风 | notes / learning / productivity |
-  | `minimal` | 极简黑白 | business / design / tech |
-  | `warm` | 暖色生活方式 | life / food / goods / mood（most "native" RedNote feel） |
-  | `morandi` | 莫兰迪低饱和 | outfits / home / art / reading |
-- **4 layouts**: `sparse` / `balanced` / `list` / `flow`
+  | `dazibao` ⭐ | 大字报情绪爆款 | **default** — opinions / rants / tips / checklists / tutorials（big-character poster, marker highlights, least "AI-looking"） |
+  | `minimal` | 极简黑白 | hardcore tech / long tutorials where 大字报 feels too loud |
+- **Anti-"AI-flavor" copywriting** — `references/copywriting.md` drives emotional-hook titles (救命/谁懂啊/后悔没早知道), first-person colloquial body copy, and an AI-tell red-flag checklist, so posts read like a real person wrote them rather than a template. Default leans **text-first, fewer cards** (1 cover + 2–4 big-text cards + a substantive caption)
 - **3 aspect ratios**: `3:4` (1080×1440, default) / `1:1` (1080×1080) / `4:3` (1200×900)
 - **Embedded fonts — Chinese *and* emoji** — Noto Sans/Serif SC + ZCOOL fonts **and a color-emoji font (Noto Color Emoji)** bundled as local `woff2` and loaded via `@font-face`, so headless Chromium renders crisp Chinese typography (serif titles, light weights) and full-color emoji instead of falling back — no network needed at render time. Crucially, **emoji no longer depend on a system font**, so they don't turn into `□` tofu boxes on environments that lack one (CI / sandboxes / some clouds)
 - **Font preflight + post-render self-check** — `check_fonts.js` verifies (before generating) that every bundled font loads and emoji actually render; `screenshot.js` then audits every PNG (after rendering) for missing-glyph "tofu" boxes and reports exactly which cards/characters are affected
@@ -44,9 +41,9 @@ npm install && npx playwright install chromium
 
 Inside Claude Code, just ask in natural language, e.g.:
 
-- “帮我把这篇文章生成小红书图文” + paste the article
-- “把 posts/ai-future.md 做成小红书卡片，用 anthropic 风格，flow 布局”
-- “用 notion 风格生成 3 个职场沟通技巧的小红书图片”
+- “帮我把这篇文章生成小红书图文” + paste the article（defaults to the `dazibao` style）
+- “把 posts/ai-future.md 做成小红书卡片”
+- “用 minimal 风格生成 3 个职场沟通技巧的小红书图片”
 
 The skill triggers on phrases like *生成小红书图文 / 小红书卡片 / 小红书封面 / XHS cards / RedNote images*.
 
@@ -71,16 +68,14 @@ Auto-detects each HTML's canvas size from the `body` width/height, renders in pa
 ```
 SKILL.md                 # skill entrypoint / workflow
 references/               # full design tokens per style + guides
-  style-anthropic.md
-  style-notion.md
-  style-minimal.md
-  style-warm.md
-  style-morandi.md
+  style-dazibao.md       # ⭐ default: big-character poster, emotional, least "AI-looking"
+  style-minimal.md       # clean B&W fallback for hardcore tech / tutorials
+  copywriting.md         # anti-AI-flavor: hook titles + colloquial body + red-flag checklist
   fonts.md               # font-embedding spec (read before generating)
   banned-words.md        # compliance check rationale & replacement rules
 assets/
   fonts.css              # @font-face block incl. emoji (copy into HTML, replace {SKILL_ROOT})
-  fonts/*.woff2          # bundled fonts: Chinese (Noto Sans/Serif SC, ZCOOL) + Noto Color Emoji
+  fonts/*.woff2          # bundled fonts: Noto Sans SC + ZCOOL KuaiLe + Noto Color Emoji
 data/
   banned-words.json      # categorized sensitive-word dictionary
 scripts/
@@ -91,8 +86,8 @@ scripts/
   setup_fonts.sh         # (re)download bundled fonts (incl. emoji)
   package.json
 examples/
-  sample_cover_anthropic.html
-  sample_cover_anthropic.png
+  sample_cover_dazibao.html    # ⭐ default-style cover sample
+  sample_cover_dazibao.png
 ```
 
 ## License

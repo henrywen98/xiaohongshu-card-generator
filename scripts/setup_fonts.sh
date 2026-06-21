@@ -19,11 +19,7 @@ FONTS=(
   "noto-sans-sc chinese-simplified 400 NotoSansSC-400.woff2"
   "noto-sans-sc chinese-simplified 500 NotoSansSC-500.woff2"
   "noto-sans-sc chinese-simplified 700 NotoSansSC-700.woff2"
-  "noto-serif-sc chinese-simplified 500 NotoSerifSC-500.woff2"
-  "noto-serif-sc chinese-simplified 700 NotoSerifSC-700.woff2"
-  "noto-serif-sc chinese-simplified 900 NotoSerifSC-900.woff2"
   "zcool-kuaile chinese-simplified 400 ZCOOLKuaiLe-400.woff2"
-  "zcool-xiaowei chinese-simplified 400 ZCOOLXiaoWei-400.woff2"
   "noto-color-emoji emoji 400 NotoColorEmoji.woff2"
 )
 

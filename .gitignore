@@ -11,3 +11,6 @@ node_modules/
 xhs_card_*.html
 xhs_card_*.png
 小红书文案.md
+
+# local demo / scratch output (never commit generated samples)
+demo/

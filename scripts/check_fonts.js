@@ -28,11 +28,7 @@ const EXPECTED_FILES = [
   "NotoSansSC-400.woff2",
   "NotoSansSC-500.woff2",
   "NotoSansSC-700.woff2",
-  "NotoSerifSC-500.woff2",
-  "NotoSerifSC-700.woff2",
-  "NotoSerifSC-900.woff2",
   "ZCOOLKuaiLe-400.woff2",
-  "ZCOOLXiaoWei-400.woff2",
   "NotoColorEmoji.woff2",
 ];
 
@@ -42,11 +38,7 @@ const FONT_CHECKS = [
   ["Noto Sans SC", 400],
   ["Noto Sans SC", 500],
   ["Noto Sans SC", 700],
-  ["Noto Serif SC", 500],
-  ["Noto Serif SC", 700],
-  ["Noto Serif SC", 900],
   ["ZCOOL KuaiLe", 400],
-  ["ZCOOL XiaoWei", 400],
   ["Noto Color Emoji", 400],
 ];
 
@@ -77,14 +69,10 @@ ${css}
 body{margin:0;background:#fff;width:600px;}
 .row{font-size:40px;padding:8px 16px;}
 .sans{font-family:"Noto Sans SC","Noto Color Emoji",sans-serif;}
-.serif{font-family:"Noto Serif SC","Noto Color Emoji",serif;}
 .kuaile{font-family:"ZCOOL KuaiLe","Noto Sans SC","Noto Color Emoji",sans-serif;}
-.xiaowei{font-family:"ZCOOL XiaoWei","Noto Serif SC","Noto Color Emoji",serif;}
 </style></head><body>
 <div class="row sans">小红书无衬线 🎉✨🔥✅💡</div>
-<div class="row serif">小红书衬线标题 🌿☀️❤️</div>
 <div class="row kuaile">圆体标题 🧸🍰</div>
-<div class="row xiaowei">细衬标题 📚🌸</div>
 </body></html>`;
 }
 

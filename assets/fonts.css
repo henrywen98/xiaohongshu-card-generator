@@ -26,24 +26,8 @@
   src: url("file://{SKILL_ROOT}/assets/fonts/NotoSansSC-700.woff2") format("woff2");
 }
 @font-face {
-  font-family: "Noto Serif SC"; font-style: normal; font-weight: 500; font-display: swap;
-  src: url("file://{SKILL_ROOT}/assets/fonts/NotoSerifSC-500.woff2") format("woff2");
-}
-@font-face {
-  font-family: "Noto Serif SC"; font-style: normal; font-weight: 700; font-display: swap;
-  src: url("file://{SKILL_ROOT}/assets/fonts/NotoSerifSC-700.woff2") format("woff2");
-}
-@font-face {
-  font-family: "Noto Serif SC"; font-style: normal; font-weight: 900; font-display: swap;
-  src: url("file://{SKILL_ROOT}/assets/fonts/NotoSerifSC-900.woff2") format("woff2");
-}
-@font-face {
   font-family: "ZCOOL KuaiLe"; font-style: normal; font-weight: 400; font-display: swap;
   src: url("file://{SKILL_ROOT}/assets/fonts/ZCOOLKuaiLe-400.woff2") format("woff2");
-}
-@font-face {
-  font-family: "ZCOOL XiaoWei"; font-style: normal; font-weight: 400; font-display: swap;
-  src: url("file://{SKILL_ROOT}/assets/fonts/ZCOOLXiaoWei-400.woff2") format("woff2");
 }
 /* 彩色 emoji —— 必须本地嵌入。渲染机（CI / 沙箱 / 某些云环境如 openclaw）
  * 不一定装了 Noto Color Emoji，缺了 emoji 会渲染成空心方块 □（俗称豆腐块/方括号）。
