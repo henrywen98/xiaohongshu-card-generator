@@ -1,79 +1,57 @@
-# 字体加载规范（必读 — 直接决定成图美观度）
+# 字体加载
 
-## 为什么必须显式嵌入字体
+**正常情况下你不需要读这个文件。** 字体已本地嵌入，`longform_to_html.js` 自动内联，
+`screenshot.js` 截图前自动等 `document.fonts.ready`。
 
-截图在 **无头 Chromium** 里跑，系统**没有** `PingFang SC`、`Microsoft YaHei`、
-`Noto Sans SC`，也**没有任何衬线中文字体**——唯一可用的中文字体是
-`WenQuanYi Zen Hei（文泉驿正黑）`，且只有 Regular 一个字重。
+## 已嵌入的字体
 
-如果 HTML 只写 `font-family: "PingFang SC", ...`，结果是：
-
-- 中文全部回落成文泉驿黑体，所有"衬线标题""细字重(300)"的设计意图**全部失效**；
-- 成图偏糊、偏土，和 `references/style-*.md` 的设计差距很大。
-
-**实测：** 用 Google Fonts `<link>` 也不行——无头 Chromium 在 CI / 沙箱 / 离线 /
-TLS 拦截环境下取 `fonts.googleapis.com` 会失败（如 `ERR_CERT_AUTHORITY_INVALID`），
-字体加载数为 0，照样回落黑体。
-
-**结论：字体必须落到本地磁盘，用 `@font-face` 走 `file://` 绝对路径引入。**
-本仓库已把所需 woff2 放在 `assets/fonts/`，并在 `assets/fonts.css` 提供现成声明。
-
-## 标准做法（每个卡片 HTML 都要做）
-
-1. 把 `assets/fonts.css` 的全部 `@font-face` 声明**整段拷进** HTML 的 `<style>` 顶部。
-2. 把其中所有 `{SKILL_ROOT}` 替换为本 skill 根目录的**绝对路径**（含 SKILL.md 的目录）。
-   - 例：`file:///home/user/.claude/skills/xhs-image-gen/assets/fonts/NotoSansSC-400.woff2`
-3. 在 `font-family` 栈里把 web 字体放**最前**，系统字体兜底（见下方各风格字体栈）。
-4. `scripts/screenshot.js` 会在截图前等待 `document.fonts.ready`，确保字体加载完再拍。
-
-> Latin（英文/数字）字形：本地 woff2 是中文子集，不含 Latin —— 这是**有意为之**，
-> Latin 会自动回落到字体栈里的 Helvetica / 系统字体，正好符合各风格的设计
-> （如 dazibao 标题里的英文用粗黑系统字体、minimal 用 Helvetica Neue）。
-
-## 各风格推荐字体栈
-
-把下列字体栈用到对应风格的 `font-family` 中（web 字体在最前，系统字体兜底，
-**emoji 字体 `"Noto Color Emoji"` 放在最末**——它只含 emoji 字形，挂在栈尾只会
-被 emoji 命中，不影响中英文，但能保证 emoji 在任何环境都彩色显示、不变方块）：
-
-### dazibao（默认 / 大字报情绪爆款）
-```css
-/* 标题 — 超粗黑体；Noto Sans SC 最重到 700，再用 -webkit-text-stroke 增重到接近 Heavy */
-font-family: "Noto Sans SC", -apple-system, "PingFang SC", "Microsoft YaHei", "Noto Color Emoji", sans-serif;  /* 标题 700 + -webkit-text-stroke:1.2px currentColor */
-/* 正文 / 清单 */
-font-family: "Noto Sans SC", -apple-system, "PingFang SC", "Noto Color Emoji", sans-serif;  /* 500 */
-/* 可选俏皮变体（生活/治愈类）— 圆体 */
-font-family: "ZCOOL KuaiLe", "Noto Sans SC", "PingFang SC", "Noto Color Emoji", sans-serif;
-```
-
-### minimal（极简黑白 / 专业兜底）
-```css
-/* 正文 light 用 font-weight:300（Noto Sans SC 300 已嵌入），标题 700 */
-font-family: "Noto Sans SC", "Helvetica Neue", -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Color Emoji", sans-serif;
-```
-
-## 已嵌入的字体与字重
-
-| 字体 | 字重 | 文件 | 用于 |
+| 字体 | 字重 | 文件 | 用途 |
 |------|------|------|------|
-| Noto Sans SC | 300 / 400 / 500 / 700 | `assets/fonts/NotoSansSC-{300,400,500,700}.woff2` | dazibao + minimal（主力） |
-| ZCOOL KuaiLe（圆体） | 400 | `assets/fonts/ZCOOLKuaiLe-400.woff2` | dazibao 可选俏皮变体 |
-| Noto Color Emoji（彩色 emoji） | 400 | `assets/fonts/NotoColorEmoji.woff2` | 所有风格（emoji） |
+| Noto Sans SC | 400 | `assets/fonts/NotoSansSC-400.woff2` | 正文 |
+| Noto Sans SC | 700 | `assets/fonts/NotoSansSC-700.woff2` | 标题 / 小标题 |
+| Noto Color Emoji | 400 | `assets/fonts/NotoColorEmoji.woff2` | emoji 彩色 |
 
-> 只保留两种风格实际用到的字体，已移除原 anthropic/morandi 用的 Noto Serif SC 和 ZCOOL XiaoWei。
-> 更新 / 重新下载字体：运行 `bash scripts/setup_fonts.sh`。
+> 只保留这 3 个文件，其他字重（300/500）和 ZCOOL 圆体已移除——长图文用不到。
+> 字体对应声明在 `assets/fonts.css`，由 `longform_to_html.js` 自动整段拷进每张 HTML。
 
-## emoji（同样必须嵌入，否则会变方块）
+## 字体出问题的迹象
 
-> ⚠️ **不要假设渲染机装了 emoji 字体。** CI / 沙箱 / 某些云环境（如 openclaw）
-> 没有 `Noto Color Emoji`，缺了之后所有 emoji 会渲染成空心方块 □（豆腐块，
-> 看起来就像"方括号"），并被烧进 PNG。中文靠系统字体不可靠，emoji 同理。
+- **中文回落成粗黑难看**（说明 Noto Sans SC 没加载）
+- **emoji 全部变方块 □**（说明 Noto Color Emoji 没加载）
+- **大量 □**（说明字体文件本身有问题或路径错）
 
-做法和中文字体一样——**本地嵌入**：
+## 排查步骤
 
-1. `assets/fonts.css` 里已经包含 `Noto Color Emoji` 的 `@font-face`（COLRv1 矢量
-   彩色字体，Chromium 原生支持，约 5.5MB，已随仓库自带）。整段拷进 HTML 即可。
-2. 在**每个文字 `font-family` 栈的末尾**追加 `"Noto Color Emoji"`（上面各风格字体栈
-   已示范）。它只含 emoji 字形，挂在栈尾不会影响中英文。
-3. 生成前用 `node scripts/check_fonts.js` 预检，确认 emoji 能渲染；截图脚本
-   `scripts/screenshot.js` 也会在出图后自动检测豆腐块并报警。
+**1. 跑预检看字体文件 + @font-face 加载情况**
+
+```bash
+node {skill-root}/scripts/check_fonts.js
+```
+
+- ✓ 全部通过 → 字体文件正常，问题可能出在 `screenshot.js` 没等字体（极少见）
+- ✗ 文件缺失 → 跑 `bash {skill-root}/scripts/setup_fonts.sh` 重下
+- ✗ 加载失败 → 看下面的"重装依赖"
+
+**2. 重装依赖**
+
+```bash
+rm -rf scripts/node_modules
+cd {skill-root}/scripts && npm install && npx playwright install chromium
+```
+
+**3. 看 `{SKILL_ROOT}` 替换是否生效**
+
+```bash
+grep -c 'file://' out/xhs_long_01.html   # 应该 > 0
+head -20 out/xhs_long_01.html             # 看 file:///path/to/assets/fonts/...
+```
+
+如果 `file://` 是空的，说明 skill 根目录没解析对（少见，多发生在符号链接 / 容器挂载点）。
+
+## 重新下载字体
+
+```bash
+bash {skill-root}/scripts/setup_fonts.sh
+```
+
+只下载 `Noto Sans SC 400/700` 和 `Noto Color Emoji`。

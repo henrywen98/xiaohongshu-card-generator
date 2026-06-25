@@ -12,14 +12,12 @@ BASE="https://cdn.jsdelivr.net/fontsource/fonts"
 mkdir -p "$FONT_DIR"
 
 # 格式: <family-id> <subset> <weight> <输出文件名>
+# 当前只下长图文必需的 3 个：Noto Sans SC 400/700 + Noto Color Emoji。
 # emoji 用 noto-color-emoji 的 emoji 子集（COLRv1 矢量彩色，Chromium 原生支持），
 # 嵌入后 emoji 不再依赖系统字体，避免在缺 Noto Color Emoji 的环境渲染成方块 □。
 FONTS=(
-  "noto-sans-sc chinese-simplified 300 NotoSansSC-300.woff2"
   "noto-sans-sc chinese-simplified 400 NotoSansSC-400.woff2"
-  "noto-sans-sc chinese-simplified 500 NotoSansSC-500.woff2"
   "noto-sans-sc chinese-simplified 700 NotoSansSC-700.woff2"
-  "zcool-kuaile chinese-simplified 400 ZCOOLKuaiLe-400.woff2"
   "noto-color-emoji emoji 400 NotoColorEmoji.woff2"
 )
 

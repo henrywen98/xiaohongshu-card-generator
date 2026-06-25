@@ -1,93 +1,92 @@
-# xiaohongshu-card-generator
+# xhs-image-gen
 
-A [Claude Code](https://docs.claude.com/en/docs/claude-code) **skill** that turns text, articles, or topics into 1–10 styled Xiaohongshu / RedNote (小红书) image cards.
+A [Claude Code](https://docs.claude.com/en/docs/claude-code) **skill** that turns a long article / reflection / tutorial into a swipable Xiaohongshu (小红书) image carousel — multiple 1080×1440 PNGs, auto-paginated, warm-tone layout.
 
-HTML is the intermediate format; the final deliverable is **PNG images** (rendered via Playwright/Chromium).
-
-> 中文：把一段文案、一篇文章或一个主题词，自动生成 1–10 张小红书风格的图文卡片（PNG）。HTML 是中间产物，最终交付物是 PNG 图片。
+> 中文：把整篇文章 / 反思 / 教程 / 笔记自动铺成可翻阅的小红书长图文（多页 PNG），暖色版式、按字数和「一、二、三」小标题自动分页。
 
 ## Features
 
-- **2 focused visual styles** (see `references/style-*.md` for full design tokens)
-  | style | 中文 | best for |
-  |-------|------|----------|
-  | `dazibao` ⭐ | 大字报情绪爆款 | **default** — opinions / rants / tips / checklists / tutorials（big-character poster, marker highlights, least "AI-looking"） |
-  | `minimal` | 极简黑白 | hardcore tech / long tutorials where 大字报 feels too loud |
-- **Anti-"AI-flavor" copywriting** — `references/copywriting.md` drives emotional-hook titles (救命/谁懂啊/后悔没早知道), first-person colloquial body copy, and an AI-tell red-flag checklist, so posts read like a real person wrote them rather than a template. Default leans **text-first, fewer cards** (1 cover + 2–4 big-text cards + a substantive caption)
-- **3 aspect ratios**: `3:4` (1080×1440, default) / `1:1` (1080×1080) / `4:3` (1200×900)
-- **Embedded fonts — Chinese *and* emoji** — Noto Sans/Serif SC + ZCOOL fonts **and a color-emoji font (Noto Color Emoji)** bundled as local `woff2` and loaded via `@font-face`, so headless Chromium renders crisp Chinese typography (serif titles, light weights) and full-color emoji instead of falling back — no network needed at render time. Crucially, **emoji no longer depend on a system font**, so they don't turn into `□` tofu boxes on environments that lack one (CI / sandboxes / some clouds)
-- **Font preflight + post-render self-check** — `check_fonts.js` verifies (before generating) that every bundled font loads and emoji actually render; `screenshot.js` then audits every PNG (after rendering) for missing-glyph "tofu" boxes and reports exactly which cards/characters are affected
-- **Banned-word compliance check** — scans card text & caption against a categorized 小红书 sensitive-word dictionary (ad-law absolutes, medical claims, off-platform diversion, etc.) and suggests replacements, so posts are less likely to get throttled
-- Auto-splits content into cover / content / summary cards
-- Generates a ready-to-post `小红书文案.md` (title + body + hashtags)
+- **One focus: long-text → image carousel** — write `article.txt`, get a folder of `xhs_long_*.png` ready to upload
+- **Auto-pagination** — `longform_to_html.js` splits by character count and `一、二、三` subheadings, no manual layout work
+- **Warm-tone fixed layout** — 米色底 `#f5efe0` + 栗色强调 `#b4643c`, font sizes & spacing designed for 1080×1440 (`references/styles.md`)
+- **Bundled Chinese + emoji fonts** — Noto Sans SC 400/700 + Noto Color Emoji as local `woff2` + `@font-face`, so headless Chromium renders crisp Chinese and color emoji in any environment (CI / sandbox / openclaw). No network at render time
+- **Font preflight + post-render self-check** — `check_fonts.js` verifies the bundled fonts load before generating; `screenshot.js` audits every PNG for missing-glyph "tofu" boxes and reports exactly which pages/characters are affected
+- **Banned-word compliance check** — scans all pages against a categorized 小红书 sensitive-word dictionary (ad-law absolutes, medical claims, off-platform diversion, etc.) and suggests replacements, so posts are less likely to get throttled
 
 ## Install (as a Claude Code skill)
-
-Clone into your skills directory:
 
 ```bash
 git clone https://github.com/henrywen98/xiaohongshu-card-generator.git \
   ~/.claude/skills/xhs-image-gen
 ```
 
-Then install the screenshot script's dependency (one time):
+> 远端 repo 名沿用旧的 `xiaohongshu-card-generator`（避免破坏现有 clone 链接），
+> 实际装到本地后目录叫 `xhs-image-gen`（skill 名）。
+
+Then one-time setup:
 
 ```bash
 cd ~/.claude/skills/xhs-image-gen/scripts
 npm install && npx playwright install chromium
+node scripts/check_fonts.js   # 字体预检
 ```
 
 ## Usage
 
 Inside Claude Code, just ask in natural language, e.g.:
 
-- “帮我把这篇文章生成小红书图文” + paste the article（defaults to the `dazibao` style）
-- “把 posts/ai-future.md 做成小红书卡片”
-- “用 minimal 风格生成 3 个职场沟通技巧的小红书图片”
+- "把这篇长文做成小红书长图文 / 图集" + paste the article
+- "把 posts/ai-future.md 做成小红书图集"
+- "把这段反思发成小红书，原文铺成图就行"
 
-The skill triggers on phrases like *生成小红书图文 / 小红书卡片 / 小红书封面 / XHS cards / RedNote images*.
+The skill triggers on phrases like *小红书长图文 / 长文图 / 图集 / 发小红书 / 铺成图* or any paste of a long article intended for 小红书.
 
-### Font preflight (standalone)
+See [SKILL.md](SKILL.md) for the full 5-step workflow.
 
-```bash
-node scripts/check_fonts.js          # add --strict to exit non-zero on failure
-```
-
-Launches headless Chromium, confirms every bundled `@font-face` loads, and renders a Chinese + emoji probe to verify emoji come out in color (not `□` tofu boxes). Run it before generating, especially on a new environment.
-
-### Screenshot script (standalone)
+### One-shot example
 
 ```bash
-node scripts/screenshot.js <dir>/xhs_card_*.html --clean
+# 1. Write your article to article.txt (use 一、二、三… for subheadings)
+# 2. Auto-paginate
+node scripts/longform_to_html.js article.txt "我的标题" --out-dir ./out
+
+# 3. Compliance check (fix any high-risk hits)
+node scripts/check_banned_words.js ./out/xhs_long_*.html
+
+# 4. Render PNGs (auto waits for fonts + audits for tofu)
+node scripts/screenshot.js ./out/xhs_long_*.html --clean
 ```
 
-Auto-detects each HTML's canvas size from the `body` width/height, renders in parallel, writes PNGs alongside, and (with `--clean`) deletes the intermediate HTML. After rendering it audits each PNG for missing-glyph "tofu" and prints which cards/characters are affected (disable with `--no-audit`).
+Output: `out/xhs_long_01.png` … `xhs_long_NN.png`, ready to upload to 小红书 in order.
 
 ## Layout
 
 ```
-SKILL.md                 # skill entrypoint / workflow
-references/               # full design tokens per style + guides
-  style-dazibao.md       # ⭐ default: big-character poster, emotional, least "AI-looking"
-  style-minimal.md       # clean B&W fallback for hardcore tech / tutorials
-  copywriting.md         # anti-AI-flavor: hook titles + colloquial body + red-flag checklist
-  fonts.md               # font-embedding spec (read before generating)
-  banned-words.md        # compliance check rationale & replacement rules
+SKILL.md                    # entry point + 5-step workflow index
+references/
+  step-1-prepare.md         # write article.txt
+  step-2-paginate.md        # longform_to_html.js usage
+  step-3-compliance.md      # check_banned_words.js usage + replacement guide
+  step-4-screenshot.md      # screenshot.js usage + audit report
+  step-5-deliver.md         # manual review + delivery
+  styles.md                 # warm-tone design tokens (read-only)
+  fonts.md                  # font loading (read when troubleshooting)
 assets/
-  fonts.css              # @font-face block incl. emoji (copy into HTML, replace {SKILL_ROOT})
-  fonts/*.woff2          # bundled fonts: Noto Sans SC + ZCOOL KuaiLe + Noto Color Emoji
+  fonts.css                 # @font-face block (auto-inlined into HTML)
+  fonts/*.woff2             # bundled: Noto Sans SC 400/700 + Noto Color Emoji
 data/
-  banned-words.json      # categorized sensitive-word dictionary
+  banned-words.json         # categorized sensitive-word dictionary
 scripts/
-  screenshot.js          # Playwright HTML → PNG batch renderer (waits for fonts, audits for tofu)
-  check_fonts.js         # font preflight: bundled fonts load + emoji renders (run before generating)
-  check_banned_words.js  # banned-word scanner (recall) → report + suggestions
-  lib/glyph_audit.js     # shared missing-glyph (tofu) detector used by both scripts
-  setup_fonts.sh         # (re)download bundled fonts (incl. emoji)
+  longform_to_html.js       # long text → paginated HTML
+  screenshot.js             # HTML → PNG batch renderer (waits for fonts, audits for tofu)
+  check_fonts.js            # font preflight: bundled fonts load + emoji renders
+  check_banned_words.js     # banned-word scanner (recall)
+  lib/glyph_audit.js        # shared missing-glyph (tofu) detector
+  setup_fonts.sh            # (re)download bundled fonts
   package.json
 examples/
-  sample_cover_dazibao.html    # ⭐ default-style cover sample
-  sample_cover_dazibao.png
+  sample_longform_title.png # rendered cover page sample
+  sample_longform_body.png  # rendered body page sample
 ```
 
 ## License

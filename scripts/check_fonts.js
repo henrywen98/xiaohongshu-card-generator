@@ -22,23 +22,18 @@ const SKILL_ROOT = path.resolve(__dirname, "..");
 const FONTS_DIR = path.join(SKILL_ROOT, "assets", "fonts");
 const FONTS_CSS = path.join(SKILL_ROOT, "assets", "fonts.css");
 
-// 期望随仓库自带的字体文件（与 assets/fonts.css 对应）
+// 期望随仓库自带的字体文件（与 assets/fonts.css 对应）。
+// 长图文只用 Noto Sans SC 400/700 + Noto Color Emoji 三个，其他字重已移除。
 const EXPECTED_FILES = [
-  "NotoSansSC-300.woff2",
   "NotoSansSC-400.woff2",
-  "NotoSansSC-500.woff2",
   "NotoSansSC-700.woff2",
-  "ZCOOLKuaiLe-400.woff2",
   "NotoColorEmoji.woff2",
 ];
 
 // 要在浏览器里逐个确认能加载的 (family, weight)
 const FONT_CHECKS = [
-  ["Noto Sans SC", 300],
   ["Noto Sans SC", 400],
-  ["Noto Sans SC", 500],
   ["Noto Sans SC", 700],
-  ["ZCOOL KuaiLe", 400],
   ["Noto Color Emoji", 400],
 ];
 
