@@ -1,10 +1,12 @@
 ---
 name: xhs-image-gen
 description: >
-  This skill should be used when the user asks to generate Xiaohongshu/RedNote
-  visual cards, such as "生成小红书图文", "小红书卡片", "小红书图片", "小红书封面",
-  "做小红书图", "XHS cards", "RedNote images", or wants to convert text, articles,
-  or topics into styled HTML card images for social media posting.
+  把文案 / 文章 / 主题做成小红书图文（PNG）。两种模式：① 整篇长文 → 自动分页成连续图集
+  （长图文 / 长文图，一段反思 / 教程 / 笔记一键铺成多张连贯图，**长文默认走这个**）；
+  ② 少量大字报卡片 + 口语化长正文文案。当用户说"生成小红书图文 / 卡片 / 封面""长图文""长文图"
+  "把这篇 / 这段发成小红书""做成小红书图集""XHS cards""RedNote images"，或丢来一篇长文 /
+  反思 / 教程想发小红书时使用——即使没说"图片"或"skill"。给的是整篇长文且想"原样成图"就走
+  模式 ①；给主题 / 短内容要爆款就走模式 ②。
 ---
 
 # 小红书图文卡片生成器
@@ -30,7 +32,47 @@ HTML 是中间产物，最终交付物是 PNG 图片 + `小红书文案.md`。
 **图文比例：以文字为主、少量图文**——卡片只放钩子和要点（封面 1 张 + 内容 2-4 张），
 **详细干货放进正文长文案**（Step 7）。
 
-## 工作流
+---
+
+## 两种模式（长文优先）
+
+| 模式 | 用途 | 产物 | 何时用 |
+|------|------|------|--------|
+| **A. 整篇长文 → 分页图集** ⭐ | 把一整篇长文（反思 / 教程 / 笔记 / 总结）**完整铺成**连贯多张图，读者翻着看完全文 | 标题页 + N 张正文图（+ 可选钩子封面） | 用户给**长文**想"原文成图"，说"长图文 / 长文图 / 把这篇发成图集" |
+| **B. 少图重正文卡片** | 卡片只放钩子要点，详细干货进长正文文案 | 3-5 张大字报卡 + `小红书文案.md` | 用户给**主题 / 短内容**要爆款封面，干货愿意放正文 |
+
+> 拿不准就问一句：是想"把整篇文章变成可翻阅的图"（A），还是"做几张吸睛卡 + 一篇文案"（B）？
+> 默认：给了整篇长文且想原样成图 → **A**；给主题 / 短内容要爆款 → **B**。
+
+## 模式 A 工作流：整篇长文 → 分页图集
+
+统一暖色版式（米色底 #f5efe0 + 栗色强调 #b4643c + 嵌入 Noto Sans SC），脚本按字数和
+「一、二、三…」小标题**自动分页**，每页一个独立 HTML，你不手写每一页。出图复用模式 B 的
+截图引擎（同样等字体加载 + 缺字形自检），所以本地预览 = openclaw 出图。
+
+1. **字体预检**（首次 / 换环境）：同 Step 0 —— `node {skill-root}/scripts/check_fonts.js`。
+2. **准备长文**：写到一个 `.txt`，用「一、二、三…」给正文分小标题（脚本据此另起页），
+   段落之间空行分隔；不放品牌 / AI 痕迹。
+3. **分页 → HTML**：
+   ```bash
+   node {skill-root}/scripts/longform_to_html.js <长文.txt> "主标题" --out-dir <out>
+   ```
+   每页一个 `xhs_long_NN.html`（已内联嵌入字体）。`--chars 400` 可调每页字数（默认 460，
+   想更满调高、更松调低）。
+4. **出图**（含字体等待 + 缺字形自检）：
+   ```bash
+   node {skill-root}/scripts/screenshot.js <out>/xhs_long_*.html --output-dir <out> --clean
+   ```
+5. **钩子封面**（可选但推荐）：长文第一页是干净标题页；想要更强点击钩子，就按模式 B 单独做
+   **1 张大字报封面**放最前（读 `references/style-dazibao.md` + `references/copywriting.md`）。
+6. **文案 + 合规**：仍出一份 `小红书文案.md`（标题套情绪钩子、正文口语化、3-5 个 tag），见
+   Step 7；标题 / 正文跑违禁词检查（Step 4 的脚本）。
+7. **自检**：按 Step 6 亲眼过每张图（裁切 / 对齐 / 字体）。
+
+> 模式 A 出的是"原文连贯图集"，与"少图重正文"是两条路——用户明确要整篇成图时用它，
+> 否则默认仍是 B。下面 Step 0-8 是模式 B 的完整流程，模式 A 复用其中的 Step 0 / 4 / 5 / 6 / 7。
+
+## 模式 B 工作流：少图重正文卡片
 
 ### Step 0：环境与字体预检（首次使用 / 换渲染环境时必做）
 
@@ -261,10 +303,12 @@ node {skill-root}/scripts/check_banned_words.js <output-dir>/小红书文案.md
 
 ## 示例用法
 
-- "帮我把这篇文章生成小红书图文" + 粘贴文章内容（默认大字报风）
-- "把 posts/ai-future.md 做成小红书卡片"
-- "生成3个职场沟通技巧的小红书图片"
-- "用 minimal 风格做一组小红书封面，内容是 content.txt"
+- "把这篇长文做成小红书长图文 / 图集" + 粘贴整篇文章（**模式 A：整篇分页成图**）
+- "把这段反思发成小红书，原文铺成图就行"（模式 A）
+- "帮我把这篇文章生成小红书图文" + 粘贴文章内容（默认大字报卡片，模式 B）
+- "把 posts/ai-future.md 做成小红书卡片"（模式 B）
+- "生成3个职场沟通技巧的小红书图片"（模式 B）
+- "用 minimal 风格做一组小红书封面，内容是 content.txt"（模式 B）
 
 ---
 
@@ -295,9 +339,15 @@ node {skill-root}/scripts/check_banned_words.js <output-dir>/小红书文案.md
 - **`references/banned-words.md`** — 词库说明与替换原则
 - 用法：`node {skill-root}/scripts/check_banned_words.js <files...> [--json] [--strict]`
 
+### 长文分页（模式 A）
+
+- **`scripts/longform_to_html.js`** — 整篇长文 → 按字数 +「一、二、三」小标题自动分页，每页一个
+  独立 `xhs_long_NN.html`（暖色版式、已内联嵌入字体），再交给 `screenshot.js` 出图
+- 用法：`node {skill-root}/scripts/longform_to_html.js <长文.txt> "主标题" --out-dir <out> [--chars 460]`
+
 ### 截图脚本
 
-- **`scripts/screenshot.js`** — Playwright 批量截图脚本，将 HTML 转为 PNG（截图前等 `document.fonts.ready`，出图后自动做缺字形/豆腐块检测）
+- **`scripts/screenshot.js`** — Playwright 批量截图脚本，将 HTML 转为 PNG（截图前等 `document.fonts.ready`，出图后自动做缺字形/豆腐块检测）。模式 A 的 `xhs_long_*.html` 与模式 B 的 `xhs_card_*.html` 通用
 - 首次使用：`cd {skill-root}/scripts && npm install && npx playwright install chromium`
 - 用法：`node {skill-root}/scripts/screenshot.js xhs_card_*.html [--clean] [--output-dir <dir>] [--no-audit]`
 - **`scripts/setup_fonts.sh`** — 重新下载 / 更新 `assets/fonts/` 字体（含 emoji，仓库已自带，一般无需运行）
