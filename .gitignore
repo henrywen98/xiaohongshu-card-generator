@@ -16,3 +16,7 @@ xhs_long_*.png
 
 # local demo / scratch output (never commit generated samples)
 demo/
+
+# trigger eval 中间产物（trigger-eval.json + run-trigger-eval.sh 保留）
+evals/results/
+evals/log.txt

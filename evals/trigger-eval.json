@@ -1,0 +1,23 @@
+[
+  {"query": "帮我把这篇博客铺成小红书图集，文章比较长，大概 1500 字", "should_trigger": true},
+  {"query": "把 /Users/me/notes/reflection.md 做成小红书长图文，要按段落自动分页", "should_trigger": true},
+  {"query": "这段反思我挺满意的，想原样发小红书，给我铺成可翻阅的图", "should_trigger": true},
+  {"query": "上周写了一篇关于远程办公的深度文章（3500 字），怎么发小红书？想做成长文图那种", "should_trigger": true},
+  {"query": "turn this article into Xiaohongshu swipeable images, keep the original text as-is", "should_trigger": true},
+  {"query": "我想把读完《思考，快与慢》后的笔记整理发小红书，大概 800 字，能直接铺成多张图吗", "should_trigger": true},
+  {"query": "教程文章想发小红书图集，一段段看那种，文件在 posts/claude-code-tutorial.md", "should_trigger": true},
+  {"query": "把这段发小红书要图集版，不要 9 宫格封面那种", "should_trigger": true},
+  {"query": "我写了一篇关于跳槽经历的复盘，1800 字，直接铺成小红书长图", "should_trigger": true},
+  {"query": "把 article.txt 这篇长文转成小红书长图文，每页暖色调，最好自带字体", "should_trigger": true},
+
+  {"query": "帮我润色一下这段小红书文案，'姐妹们今天给大家分享...'后面接不下去", "should_trigger": false},
+  {"query": "给我想 5 个小红书爆款标题，主题是秋季穿搭", "should_trigger": false},
+  {"query": "把这篇做成长图配图发公众号，竖版 1080 宽", "should_trigger": false},
+  {"query": "make a poster for our meetup next Saturday, 800x1200", "should_trigger": false},
+  {"query": "写个 30 秒抖音脚本，主题是 AI 编程", "should_trigger": false},
+  {"query": "我要在小红书做一组产品图，9 宫格那种，3x3 排版", "should_trigger": false},
+  {"query": "帮我把这段笔记改成小红书口吻，要 emoji 多的那种，150 字以内", "should_trigger": false},
+  {"query": "design a square 1080x1080 cover image with bold title, English content", "should_trigger": false},
+  {"query": "想做一组小红书卡片图，5 张，每张一个大字标题加几条要点", "should_trigger": false},
+  {"query": "把这段分析贴到小红书评论里会被人骂吗？帮我看看措辞", "should_trigger": false}
+]
