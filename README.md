@@ -87,7 +87,13 @@ scripts/
 examples/
   sample_longform_title.png # rendered cover page sample
   sample_longform_body.png  # rendered body page sample
+evals/                     # 维护者工具：trigger eval + 调 description
+  trigger-eval.json         #   20 条 query（10 should-trigger / 10 should-not）
+  run-trigger-eval.sh       #   跑 trigger eval 准确率（需 pi CLI，可选）
 ```
+
+> `evals/` 是**给维护者调的**——别人 clone 后不跑这个也能正常使用本 skill。脚本要
+> pi CLI，没装会报错；不装的话删 evals/ 整目录即可。
 
 ## License
 

@@ -1,43 +1,41 @@
 #!/usr/bin/env bash
-# Trigger eval：用 pi -p 当评分员，测当前 description 的触发率
-# 用法: bash evals/run-trigger-eval.sh [iter-tag]
-#   iter-tag: 跑哪轮的描述，tag 跟 results 目录名挂钩（默认 "current"）
+# Trigger eval 多数投票版：每个 query 跑 N 次（默认 3），取多数结果
+# 用法:
+#   bash evals/run-trigger-eval-majority.sh <iter-tag> [runs-per-query]
+#   EVAL_LLM_CMD="claude -p" bash evals/run-trigger-eval-majority.sh iter-x
 
 set -uo pipefail
 
 ITER_TAG="${1:-current}"
-EVAL_SET="/Users/henry/dev/2_skills/xhs-image-gen/evals/trigger-eval.json"
-SKILL_DIR="/Users/henry/dev/2_skills/xhs-image-gen"
+RUNS_PER_QUERY="${2:-3}"
+SKILL_DIR="${SKILL_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+EVAL_SET="${EVAL_SET:-$SKILL_DIR/evals/trigger-eval.json}"
 OUT_DIR="$SKILL_DIR/evals/results/$ITER_TAG"
+EVAL_LLM_CMD="${EVAL_LLM_CMD:-pi -p --mode text --no-session}"
+
 mkdir -p "$OUT_DIR"
 
-# 读当前 description
+echo "=== iter: $ITER_TAG | runs/query: $RUNS_PER_QUERY | llm: $EVAL_LLM_CMD ==="
+echo ""
+
+# 读 description
 DESC=$(python3 -c "
 import re
 with open('$SKILL_DIR/SKILL.md', 'r') as f:
     content = f.read()
 m = re.search(r'description:\s*>\s*\n((?:[ \t]+.*\n)+)', content)
-if m:
-    print(m.group(1).strip())
+print(m.group(1).strip() if m else 'NO MATCH')
 ")
-echo "=== 当前 description ==="
-echo "$DESC"
-echo ""
-echo "=== 跑 trigger eval，输出到 $OUT_DIR ==="
-echo ""
 
-# 读所有 query
 TOTAL=$(python3 -c "import json; print(len(json.load(open('$EVAL_SET'))))")
 
 for i in $(seq 0 $((TOTAL-1))); do
     QUERY=$(python3 -c "import json; print(json.load(open('$EVAL_SET'))[$i]['query'])")
     EXPECTED=$(python3 -c "import json; print(json.load(open('$EVAL_SET'))[$i]['should_trigger'])")
-    QUERY_FILE="$OUT_DIR/query-${i}-raw.txt"
-    RESULT_FILE="$OUT_DIR/query-${i}-result.txt"
 
-    # 构造 prompt：让 pi 模拟 Claude Code agent，看到这个 description + query，
-    # 决定是否触发 skill。回答 yes/no。
-    PROMPT="You are simulating a Claude Code agent deciding whether to invoke a skill.
+    PROMPT="IMPORTANT: You are a yes/no classifier. Do NOT call any tools. Do NOT read or write any files. Do NOT run any commands. Just answer with one word.
+
+You are simulating a Claude Code agent deciding whether to invoke a skill.
 The skill 'xhs-image-gen' has this description:
 
 ---
@@ -48,14 +46,40 @@ User query: $QUERY
 
 Would you invoke this skill to handle the query? Answer with exactly one word: 'yes' or 'no' (lowercase, no other text)."
 
-    # 跑 pi -p；用 grep -o 抓第一个 yes/no
-    PI_OUTPUT=$(pi -p --mode text --no-session "$PROMPT" 2>/dev/null)
-    TRIGGERED=$(echo "$PI_OUTPUT" | grep -oiE '\b(yes|no)\b' | head -1 | tr '[:upper:]' '[:lower:]')
-    if [[ -z "$TRIGGERED" ]]; then
+    eval "CMD_ARGS=( $EVAL_LLM_CMD )"
+
+    yes_count=0
+    no_count=0
+    unclear_count=0
+
+    for r in $(seq 1 $RUNS_PER_QUERY); do
+        LLM_OUTPUT=$("${CMD_ARGS[@]}" "$PROMPT" 2>/dev/null) || LLM_OUTPUT=""
+        RESULT=$(echo "$LLM_OUTPUT" | grep -oiE '^(yes|no)[\.\s]*$' | head -1 | tr -d '[:space:].' | tr '[:upper:]' '[:lower:]')
+        if [[ -z "$RESULT" ]]; then
+            RESULT=$(echo "$LLM_OUTPUT" | grep -oiE '(yes|no)' | head -1 | tr '[:upper:]' '[:lower:]')
+        fi
+        if [[ "$RESULT" == "yes" ]]; then
+            yes_count=$((yes_count+1))
+        elif [[ "$RESULT" == "no" ]]; then
+            no_count=$((no_count+1))
+        else
+            unclear_count=$((unclear_count+1))
+        fi
+    done
+
+    # 多数投票（UNCLEAR 票不参与多数）
+    if [[ $yes_count -gt $no_count ]]; then
+        TRIGGERED="yes"
+    elif [[ $no_count -gt $yes_count ]]; then
+        TRIGGERED="no"
+    else
         TRIGGERED="UNCLEAR"
     fi
 
-    # 判断对错
+    # 写最终结果
+    echo "$TRIGGERED" > "$OUT_DIR/query-${i}-result.txt"
+    echo "$yes_count,$no_count,$unclear_count" > "$OUT_DIR/query-${i}-votes.txt"
+
     if [[ "$EXPECTED" == "True" ]]; then
         EXPECTED_LABEL="T"
     else
@@ -76,13 +100,13 @@ Would you invoke this skill to handle the query? Answer with exactly one word: '
         STATUS="✗"
     fi
 
-    printf "  %s [%s→%s] q%-2d  %s\n" "$STATUS" "$EXPECTED_LABEL" "$ACTUAL_LABEL" "$i" "${QUERY:0:60}"
-    echo "$TRIGGERED" > "$RESULT_FILE"
+    printf "  %s [%s→%s] y=%d n=%d u=%d  q%-2d  %s\n" \
+        "$STATUS" "$EXPECTED_LABEL" "$ACTUAL_LABEL" "$yes_count" "$no_count" "$unclear_count" \
+        "$i" "${QUERY:0:50}"
 done
 
-# 汇总
 echo ""
-echo "=== 汇总 ==="
+echo "=== 汇总（多数投票）==="
 python3 << EOF
 import json, os
 results_dir = "${OUT_DIR}"
@@ -90,27 +114,24 @@ with open('${EVAL_SET}') as f:
     items = json.load(f)
 total = len(items)
 correct = 0
-true_pos, false_pos, true_neg, false_neg = 0, 0, 0, 0
-print(f"  query    expected  actual   query-text")
-print(f"  -------  --------  -------  --------")
+true_pos, false_pos, true_neg, false_neg, unclear_total = 0, 0, 0, 0, 0
 for i, item in enumerate(items):
     rfile = f"{results_dir}/query-{i}-result.txt"
-    actual = open(rfile).read().strip() if os.path.exists(rfile) else "?"
+    if os.path.exists(rfile):
+        actual = open(rfile).read().strip()
+    else:
+        actual = "?"
+    vfile = f"{results_dir}/query-{i}-votes.txt"
+    votes = open(vfile).read().strip() if os.path.exists(vfile) else "0,0,0"
     expected_trigger = item['should_trigger']
     actual_trigger = (actual == "yes")
-    ok = (expected_trigger == actual_trigger)
-    if ok: correct += 1
-    if expected_trigger and actual_trigger: true_pos += 1
+    if expected_trigger and actual_trigger: true_pos += 1; correct += 1
     elif not expected_trigger and actual_trigger: false_pos += 1
     elif expected_trigger and not actual_trigger: false_neg += 1
-    else: true_neg += 1
-    e = "T" if expected_trigger else "F"
-    a = "T" if actual_trigger else "F"
-    s = "✓" if ok else "✗"
-    print(f"  {s} q{i:<5}  {e:^8}  {a:^7}  {item['query'][:55]}")
-print()
+    elif not expected_trigger and not actual_trigger: true_neg += 1; correct += 1
+    if actual == "UNCLEAR": unclear_total += 1
 print(f"  准确率: {correct}/{total} = {correct*100//total}%")
-print(f"  TP={true_pos}  FP={false_pos}  FN={false_neg}  TN={true_neg}")
+print(f"  TP={true_pos}  FP={false_pos}  FN={false_neg}  TN={true_neg}  UNCLEAR={unclear_total}")
 print(f"  漏触发 (FN): {false_neg} 条")
 print(f"  误触发 (FP): {false_pos} 条")
 EOF
